@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+  <script>
+
+
+
+
+
+    let userInfo = {
+      name: "jack.ma",
+      age: 13,
+      sex: 'male',
+      updateInfo: function () {
+        //模拟xmlhttprequest请求延时
+        setTimeout(
+          () => {
+            this.name = "pony.ma"
+            this.age = 39
+            this.sex = 'female'
+            console.log(this);
+          } , 100)
+    }
+}
+
+    userInfo.updateInfo()
+    console.log(userInfo);
+  </script>
+</body>
+
+</html>
