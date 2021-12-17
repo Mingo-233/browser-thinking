@@ -13,26 +13,27 @@
 
 
 
+    function fn() {
 
+      var a = 10
 
-    let userInfo = {
-      name: "jack.ma",
-      age: 13,
-      sex: 'male',
-      updateInfo: function () {
-        //模拟xmlhttprequest请求延时
-        setTimeout(
-          () => {
-            this.name = "pony.ma"
-            this.age = 39
-            this.sex = 'female'
-            console.log(this);
-          } , 100)
-    }
-}
+      function f1() {
 
-    userInfo.updateInfo()
-    console.log(userInfo);
+        console.log(a)
+
+      };
+
+      function f2() {
+
+        console.log('f2')
+
+      };
+
+      f2();
+
+    };
+
+    fn();
   </script>
 </body>
 
