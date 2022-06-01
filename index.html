@@ -1,40 +1,50 @@
 <!DOCTYPE html>
 <html>
+  <style>
+    .parent div,
+    .parent .title,
+    .parent #article {
+      color: red;
+    }
 
+    .parent :where(div, .title, #article) {
+      color: red;
+    }
+  </style>
 
-<body>
-
+  <body>
     <button onclick="handle()">bbb</button>
-</body>
-<script>
-    let product = { price: 5, quantity: 2 }
+  </body>
+  <script>
+    let product = { price: 5, quantity: 2 };
     let proxiedProduct = new Proxy(product, {
-        get(target, key, receiver) {
-            console.log('Get was called with key = ' + key)
-            return Reflect.get(target, key)
-            return target[key]
-        },
-        set(target, key, value, receiver) {
-            console.log('Set was called with key = ' + key + ' and value = ' + value)
-            // return Reflect.set(target, key, value, receiver)
-            target[key] = value
-        },
-        defineProperty: function(target, property, descriptor) {
-            console.log('jin');
-  },
-        deleteProperty(target, key) {
-            console.log('delete调用');
-            // return Reflect.deleteProperty(target, key)
-            delete target[key]
-        }
-    })
-    proxiedProduct.quantity = 3
-    console.log(proxiedProduct)
-    console.log(proxiedProduct.quantity)
-    proxiedProduct.name='aaa'
+      get(target, key, receiver) {
+        console.log("Get was called with key = " + key);
+        return Reflect.get(target, key);
+        return target[key];
+      },
+      set(target, key, value, receiver) {
+        console.log(
+          "Set was called with key = " + key + " and value = " + value
+        );
+        // return Reflect.set(target, key, value, receiver)
+        target[key] = value;
+      },
+      defineProperty: function (target, property, descriptor) {
+        console.log("jin");
+      },
+      deleteProperty(target, key) {
+        console.log("delete调用");
+        // return Reflect.deleteProperty(target, key)
+        delete target[key];
+      },
+    });
+    proxiedProduct.quantity = 3;
+    console.log(proxiedProduct);
+    console.log(proxiedProduct.quantity);
+    proxiedProduct.name = "aaa";
 
-//     delete proxiedProduct.price
-// console.log(product);
-</script>
-
+    //     delete proxiedProduct.price
+    // console.log(product);
+  </script>
 </html>
