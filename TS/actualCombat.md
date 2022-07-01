@@ -109,6 +109,23 @@ const b: ISomeInterfaceName = {
 2倒入第三方包
 
 如果对比 import 的功能，我们可以写出如下的等式：
-
+```
 /// <reference path="..." /> == import filename.xxx
 /// <reference types="..." /> == import lodash from "lodash"
+```
+第一种，申明地址：
+例如： 就是导入该地址下的ts文件
+```
+/// <reference path = "IShape.ts" /> 
+```
+第二种，申明资源：
+```
+/// <reference types="react-scripts" />
+```
+声明文件，引用了一个第三方的声明文件包 react-scripts。问题来了， 我们去哪找它呢？没错也在 node_modules 里面找，reference types 的索引规则，完全不知道在哪去找， 经过的我实验，知道了它的索引规则为：
+ 
+1. node_modules/@types/react-scripts/index.d.ts
+2. node_modules/@types/react-scripts/package.json 的 types 字段
+3. node_modules/react-scripts/index.d.ts
+4. node_modules/react-scripts/package.json 的 types 字段
+5. 接下里就是 NodeJs 查找模块的套路了
