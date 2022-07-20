@@ -17,35 +17,44 @@
     <p>aa</p>
   </body>
   <script>
-    let product = { price: 5, quantity: 2 };
-    let proxiedProduct = new Proxy(product, {
+    const obj = {
+      count: 1,
+      b: {
+        c: 2,
+      },
+    };
+    const proxy = new Proxy(obj, {
       get(target, key, receiver) {
-        console.log("Get was called with key = " + key);
-        return Reflect.get(target, key);
-        return target[key];
+        console.log("这里是get");
+        return Reflect.get(target, key, receiver);
       },
       set(target, key, value, receiver) {
-        console.log(
-          "Set was called with key = " + key + " and value = " + value
-        );
-        // return Reflect.set(target, key, value, receiver)
-        target[key] = value;
-      },
-      defineProperty: function (target, property, descriptor) {
-        console.log("jin");
-      },
-      deleteProperty(target, key) {
-        console.log("delete调用");
-        // return Reflect.deleteProperty(target, key)
-        delete target[key];
+        console.log("这里是set");
+        return Reflect.set(target, key, value, receiver);
       },
     });
-    proxiedProduct.quantity = 3;
-    console.log(proxiedProduct);
-    console.log(proxiedProduct.quantity);
-    proxiedProduct.name = "aaa";
 
-    //     delete proxiedProduct.price
-    // console.log(product);
+    // console.log(proxy);
+    console.log(proxy.b);
+    console.log(proxy.b.c);
+
+    let ab = {
+      name: "xiaoming",
+      age: 12,
+      info: {
+        no: 2,
+      },
+    };
+    let { name, info } = ab;
+    name = "xiaohong";
+    // info.no = 3;
+    info = {
+      ph: 100,
+    };
+
+    let name2 = ab.name;
+    name2 = "xiaogang";
+    console.log(name);
+    console.log(ab);
   </script>
 </html>
