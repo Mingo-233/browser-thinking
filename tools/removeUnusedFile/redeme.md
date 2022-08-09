@@ -64,7 +64,7 @@ function recursionFindImg(currentPath) {
     return !dirName.includes(".");
   });
   for (const dir of fileDirList) {
-    recursionFindImg(`./src/assets/images/${dir}`);
+    recursionFindImg(`${currentPath}/${dir}`);
   }
 }
 
