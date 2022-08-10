@@ -153,6 +153,46 @@ type MyObj = {
   [K in keyof Obj]: boolean | K
 }
 ```
+
+
+### 1.7  类型守卫
+TypeScript 中提供了非常强大的类型推导能力，它会随着你的代码逻辑不断尝试收窄类型，这一能力称之为类型的控制流分析（也可以简单理解为类型推导）。
+
+```
+function isString(input: unknown): boolean {
+  return typeof input === "string";
+}
+
+function foo(input: string | number) {
+  if (isString(input)) {
+    // 类型“string | number”上不存在属性“replace”。
+    (input).replace("linbudu", "linbudu599")
+  }
+  if (typeof input === 'number') { }
+  // ...
+}
+```
+
+使用类型守卫函数
+```
+function isString(input: unknown): input is string {
+  return typeof input === "string";
+}
+
+function foo(input: string | number) {
+  if (isString(input)) {
+    // 正确了
+    (input).replace("linbudu", "linbudu599")
+  }
+  if (typeof input === 'number') { }
+  // ...
+}
+```
+
+isString 函数称为类型守卫，在它的返回值中，我们不再使用 boolean 作为类型标注，而是使用 input is string 这么个奇怪的搭配，拆开来看它是这样的：
+
+input 函数的某个参数；
+is string，即 is 关键字 + 预期类型，即如果这个函数成功返回为 true，那么 is 关键字前这个入参的类型，就会被这个类型守卫调用方后续的类型控制流分析收集到。
 ## 2范型
 
 ### 2.1 范性约束
