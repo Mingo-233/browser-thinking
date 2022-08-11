@@ -129,3 +129,25 @@ const b: ISomeInterfaceName = {
 3. node_modules/react-scripts/index.d.ts
 4. node_modules/react-scripts/package.json 的 types 字段
 5. 接下里就是 NodeJs 查找模块的套路了
+
+
+
+#### 申明函数
+
+```
+interface methods {
+    barMethod: () => void;
+    handle:<T>(input:T) => T
+}
+
+const handle = <T extends any>(input: T): T => input
+
+
+const methodObj2: methods = {
+  handle: <T>(input: T) => {
+    return input;
+  },
+};
+const ddd = methodObj2.handle<string>("44");
+
+```
