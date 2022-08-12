@@ -217,3 +217,105 @@ function fn<T extends number | string>(x:T):void{
 }
 fn(12)
 ```
+
+
+## 3工具类型
+
+工具类型的分类
+
+
+* 对属性的修饰，包括对象属性和数组元素的可选/必选、只读/可写。我们将这一类统称为属性修饰工具类型。
+*  对既有类型的裁剪、拼接、转换等，比如使用对一个对象类型裁剪得到一个新的对象类型，将联合类型结构转换到交叉类型结构。我们将这一类统称为结构工具类型。
+* 对集合（即联合类型）的处理，即交集、并集、差集、补集。我们将这一类统称为集合工具类型。
+* 基于 infer 的模式匹配，即对一个既有类型特定位置类型的提取，比如提取函数类型签名中的返回值类型。我们将其统称为模式匹配工具类型。
+* 模板字符串专属的工具类型，比如神奇地将一个对象类型中的所有属性名转换为大驼峰的形式。这一类当然就统称为模板字符串工具类型了。
+
+
+### 属性修饰工具类型
+
+
+type Partial<T> = {
+    [P in keyof T]?: T[P];
+};
+
+type Required<T> = {
+    [P in keyof T]-?: T[P];
+};
+
+type Readonly<T> = {
+    readonly [P in keyof T]: T[P];
+};
+
+// 去除全部只读  这个方法是ts官网非内置的
+type Mutable<T> = {
+    -readonly [P in keyof T]: T[P];
+};
+
+
+思考
+现在我们了解了 Partial、Readonly 这一类属性修饰的工具类型，不妨想想它们是否能满足我们的需要？假设场景逐渐开始变得复杂，比如以下这些情况：
+
+现在的属性修饰是浅层的，如果我想将嵌套在里面的对象类型也进行修饰，需要怎么改进？
+现在的属性修饰是全量的，如果我只想修饰部分属性呢？这里的部分属性，可能是基于传入已知的键名来确定（比如属性a、b），也可能是基于属性类型来确定(比如所有函数类型的值)？
+
+export type DeepPartial<T extends object> = {
+  [K in keyof T]?: T[K] extends object ? DeepPartial<T[K]> : T[K];
+};
+
+export type DeepRequired<T extends object> = {
+  [K in keyof T]-?: T[K] extends object ? DeepRequired<T[K]> : T[K];
+};
+
+// 也可以记作 DeepImmutable
+export type DeepReadonly<T extends object> = {
+  readonly [K in keyof T]: T[K] extends object ? DeepReadonly<T[K]> : T[K];
+};
+
+export type DeepMutable<T extends object> = {
+  -readonly [K in keyof T]: T[K] extends object ? DeepMutable<T[K]> : T[K];
+};
+
+
+// 在对象结构中我们也常声明类型为 string | null 的形式，代表了“这里有值，但可能是空值”。此时，我们也可以将其等价为一种属性修饰（Nullable 属性，前面则是 Optional / Readonly 属性）。
+type NonNullable<T> = T extends null | undefined ? never : T;
+let stringVarA :NonNullable<string>
+ 
+export type DeepNonNullable<T extends object> = {
+  [K in keyof T]: T[K] extends object
+    ? DeepNonNullable<T[K]>
+    : NonNullable<T[K]>;
+};
+
+> 需要注意的是，DeepNullable 和 DeepNonNullable 需要在开启 --strictNullChecks 下才能正常工作。
+### 结构工具类型
+
+这一部分的工具类型主要使用条件类型以及映射类型、索引类型。
+
+结构工具类型其实又可以分为两类，结构声明和结构处理。
+
+#### 结构声明
+type Record<K extends keyof any, T> = {
+    [P in K]: T;
+};
+
+其中，Record<string, unknown> 和 Record<string, any> 是日常使用较多的形式，通常我们使用这两者来代替 object 。
+
+Dictionary （字典）结构只需要一个作为属性类型的泛型参数即可。
+
+// ts官网非内置
+type Dictionary<T> = {
+  [index: string]: T;
+};
+
+// ts官网非内置
+type NumericDictionary<T> = {
+  [index: number]: T;
+};
+
+#### 结构处理
+
+type Pick<T, K extends keyof T> = {
+    [P in K]: T[P];
+};
+
+type Omit<T, K extends keyof any> = Pick<T, Exclude<keyof T, K>>;
