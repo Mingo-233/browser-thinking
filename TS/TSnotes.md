@@ -255,9 +255,10 @@ type Mutable<T> = {
 思考
 现在我们了解了 Partial、Readonly 这一类属性修饰的工具类型，不妨想想它们是否能满足我们的需要？假设场景逐渐开始变得复杂，比如以下这些情况：
 
-现在的属性修饰是浅层的，如果我想将嵌套在里面的对象类型也进行修饰，需要怎么改进？
-现在的属性修饰是全量的，如果我只想修饰部分属性呢？这里的部分属性，可能是基于传入已知的键名来确定（比如属性a、b），也可能是基于属性类型来确定(比如所有函数类型的值)？
+Q1? 现在的属性修饰是浅层的，如果我想将嵌套在里面的对象类型也进行修饰，需要怎么改进？
+Q2? 现在的属性修饰是全量的，如果我只想修饰部分属性呢？这里的部分属性，可能是基于传入已知的键名来确定（比如属性a、b），也可能是基于属性类型来确定(比如所有函数类型的值)？
 
+#### Q1 
 export type DeepPartial<T extends object> = {
   [K in keyof T]?: T[K] extends object ? DeepPartial<T[K]> : T[K];
 };
@@ -287,6 +288,56 @@ export type DeepNonNullable<T extends object> = {
 };
 
 > 需要注意的是，DeepNullable 和 DeepNonNullable 需要在开启 --strictNullChecks 下才能正常工作。
+#### Q2
+
+MarkPropsAsOptional 会将一个对象的部分属性标记为可选：
+
+export type MarkPropsAsOptional<
+  T extends object,
+  K extends keyof T = keyof T
+> = Partial<Pick<T, K>> & Omit<T, K>;
+
+// 工具函数，扁平化显示
+export type Flatten<T> = { [K in keyof T]: T[K] };
+
+```
+type MarkPropsAsOptionalStruct2 = Flatten<MarkPropsAsOptional<
+  {
+    foo: string;
+    bar: number;
+    baz: boolean;
+  },
+  'bar'
+>>;
+```
+
+同理可得
+
+export type MarkPropsAsRequired<
+  T extends object,
+  K extends keyof T = keyof T
+> = Flatten<Omit<T, K> & Required<Pick<T, K>>>;
+
+export type MarkPropsAsReadonly<
+  T extends object,
+  K extends keyof T = keyof T
+> = Flatten<Omit<T, K> & Readonly<Pick<T, K>>>;
+
+export type MarkPropsAsMutable<
+  T extends object,
+  K extends keyof T = keyof T
+> = Flatten<Omit<T, K> & Mutable<Pick<T, K>>>;
+
+export type MarkPropsAsNullable<
+  T extends object,
+  K extends keyof T = keyof T
+> = Flatten<Omit<T, K> & Nullable<Pick<T, K>>>;
+
+export type MarkPropsAsNonNullable<
+  T extends object,
+  K extends keyof T = keyof T
+> = Flatten<Omit<T, K> & NonNullable<Pick<T, K>>>;
+
 ### 结构工具类型
 
 这一部分的工具类型主要使用条件类型以及映射类型、索引类型。
