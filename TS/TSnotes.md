@@ -370,3 +370,15 @@ type Pick<T, K extends keyof T> = {
 };
 
 type Omit<T, K extends keyof any> = Pick<T, Exclude<keyof T, K>>;
+
+
+## 4模板字符串
+
+模板字符串类型的主要目的即是增强字符串字面量类型的灵活性，进一步增强类型和逻辑代码的关联。通过模板字符串类型你可以这样声明你的版本号：
+
+type Version = `${number}.${number}.${number}`;
+
+const v1: Version = '1.1.0';
+
+// X 类型 "1.0" 不能赋值给类型 `${number}.${number}.${number}`
+const v2: Version = '1.0';
