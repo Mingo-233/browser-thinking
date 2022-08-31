@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      body {
+        overflow-wrap: break-word;
+        text-align: center;
+      }
+      body {
+        overflow-wrap: break-word;
+        text-align: center;
+        font-size: 14px;
+      }
+      p {
+        font-weight: 700;
+        font-size: 20px;
+        line-height: 20px;
+        margin: 0px;
+      }
+      .pink_block {
+        border: 2px dashed pink;
+        background-color: #ffddddf0;
+        width: 400px;
+        height: 200px;
+      }
+      .green_block {
+        width: 100px;
+        height: 100px;
+        border: 1px dashed green;
+        background-color: #ccffccc0;
+      }
+      .absolute {
+        position: absolute;
+      }
+      .relative {
+        position: relative;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="pink_block relative">
+      position:relative
+      <div class="green_block absolute" style="top: 20px; left: 20px">
+        <p>1</p>
+        position: absolute
+      </div>
+      <div class="green_block absolute" style="top: 60px; left: 90px">
+        <p>2</p>
+        position: absolute
+      </div>
+      <div class="green_block absolute" style="top: 80px; left: 120px">
+        <p>3</p>
+        position: absolute
+      </div>
+    </main>
+  </body>
+</html>
