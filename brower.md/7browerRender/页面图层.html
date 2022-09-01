@@ -48,6 +48,7 @@
 
         left: 240px;
         z-index: 4;
+        /* transform: translateZ(0); */
       }
       .description {
         font-size: 10px;
@@ -84,16 +85,18 @@
     </div>
     <input type="number" id="ii" />
     <script>
-      let el = document.querySelector('#ii');
+      let el = document.querySelector("#ii");
       const onClickOutside = (elementId, callback) => {
         const element = document.getElementById(elementId);
-        document.addEventListener('click', e => {
+        document.addEventListener("click", (e) => {
           if (!element.contains(e.target)) callback();
         });
       };
 
-      let func = onClickOutside('ii', () => console.log('Clicked outside red box'));
-      document.addEventListener('DOMContentLoaded', func);
+      let func = onClickOutside("ii", () =>
+        console.log("Clicked outside red box")
+      );
+      document.addEventListener("DOMContentLoaded", func);
       // Will log 'Hello' whenever the user clicks outside of #my-element
     </script>
   </body>
