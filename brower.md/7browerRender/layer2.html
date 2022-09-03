@@ -69,7 +69,6 @@
     <div id="cc" class="box">
       Cc
       <div class="description">z-index:3</div>
-      <div class="description">transform: translateZ(0)</div>
     </div>
     <div id="d" class="box">
       D
@@ -83,21 +82,7 @@
       D
       <div class="description">z-index:4</div>
     </div>
-    <input type="number" id="ii" />
-    <script>
-      let el = document.querySelector("#ii");
-      const onClickOutside = (elementId, callback) => {
-        const element = document.getElementById(elementId);
-        document.addEventListener("click", (e) => {
-          if (!element.contains(e.target)) callback();
-        });
-      };
-
-      let func = onClickOutside("ii", () =>
-        console.log("Clicked outside red box")
-      );
-      document.addEventListener("DOMContentLoaded", func);
-      // Will log 'Hello' whenever the user clicks outside of #my-element
-    </script>
+    cc 和 多个d 压缩到同一个合成层
+    <script></script>
   </body>
 </html>

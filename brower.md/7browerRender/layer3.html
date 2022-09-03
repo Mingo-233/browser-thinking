@@ -21,18 +21,20 @@
         top: 50;
         left: 50;
         z-index: 2;
-        animation: width-change 5s infinite;
-        will-change: transform;
+        transform: translateZ(0);
+        /* animation: width-change 5s infinite; */
+        /* will-change: transform; */
+        /* will-change: width; */
       }
       @keyframes width-change {
         0% {
-          transform: scale(1);
-          /* width: 80px;  */
+          /* transform: scale(1); */
+          width: 80px;
         }
         100% {
-          transform: scale(2);
+          /* transform: scale(2); */
 
-          /* width: 120px; */
+          width: 120px;
         }
       }
 
