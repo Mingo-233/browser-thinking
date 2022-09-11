@@ -7,10 +7,10 @@
     <title>Document</title>
     <style>
       #ancestor {
-        /* -webkit-mask-image: -webkit-linear-gradient(
+        -webkit-mask-image: -webkit-linear-gradient(
           rgba(0, 0, 0, 1),
           rgba(0, 0, 0, 0)
-        ); */
+        );
       }
 
       #composited {
@@ -45,6 +45,6 @@
       </div>
     </div>
 
-    设置里mask 属性后，浏览器层压缩失效
+    设置里mask 属性后，浏览器层压缩 导致mask属性失效，因为#overlap-child 同合成层重叠，进行压缩，会导致渲染顺序的改变
   </body>
 </html>
