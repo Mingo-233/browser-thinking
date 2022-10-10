@@ -230,6 +230,62 @@ fn(12)
 * 基于 infer 的模式匹配，即对一个既有类型特定位置类型的提取，比如提取函数类型签名中的返回值类型。我们将其统称为模式匹配工具类型。
 * 模板字符串专属的工具类型，比如神奇地将一个对象类型中的所有属性名转换为大驼峰的形式。这一类当然就统称为模板字符串工具类型了。
 
+### Pick
+> 从类型定义的属性中，选取指定一组属性，返回一个新的类型定义。
+
+```
+type Pick<T, K extends keyof T> = {
+  [P in K]: T[P];
+};
+
+```
+
+使用场景
+主要是从一个已知的类型中，取出子集，作为一个新的类型返回。
+
+```
+interface Person {
+  name: string;
+  age: number;
+  id: number;
+  sex: 0 | 1;
+}
+
+// 问女生年纪不太礼貌，所以我们不需要 age 这个属性
+type Woman = Pick<Person, "name" | "id">;
+
+// 此时 Woman 等效于 Female
+
+interface Female {
+  name: string;
+  id: number;
+}
+
+
+```
+
+
+### Omit
+Omit 与 Pick 作用相似，只不过 Omit 是：以一个类型为基础支持剔除某些属性，然后返回一个新类型。
+```
+type Omit<T, K extends string | number | symbol> = {
+  [P in Exclude<keyof T, K>]: T[P];
+};
+
+```
+
+```
+interface User {
+  id: number;
+  name: string;
+  age: number;
+  sex: 0 | 1;
+  tel: number;
+}
+
+type EditUser = Omit<User, "id">; // 就是在 User 的基础上，去掉 id 属性
+```
+
 
 ### 属性修饰工具类型
 
