@@ -220,3 +220,78 @@ defineExpose({
 })
 </script>
 ```
+
+# 进阶问题
+
+## vue3响应式失效问题
+
+
+vue3 响应式在使用过程中有以下2个弊端： 
+1、 原始值的响应式系统的实现 导致必须将他包装为一个对象， 通过 .value 的方式访问
+2、 ES6 解构，不能随意使用。会破坏他的响应式特性
+
+为什么？
+
+首先第一个问题
+
+我们知道vue3中通过对proxy 的使用实现对象的拦截， 通过new Proxy 的返回值，拦截了obj 对象
+如此一来，当你 访问对象中的值的时候，他会触发 get 方法， 当你修改对象中的值的时候 他会触发 set方法。
+但是到了原始值的时候，他没有对象啊，咋办呢，new proxy 派不上用场了。无奈之下，我们只能包装一下了，所以就有了使用.value访问了
+
+
+第二个问题
+
+先实现以下proxy的封装
+
+```
+    const obj = {
+            a: {
+                count: 1
+            }
+        };
+        
+        function reactive(obj) {
+            return new Proxy(obj, {
+                get(target, key, receiver) {
+                    console.log("这里是get");
+                    // 判断如果是个对象在包装一次，实现深层嵌套的响应式
+                    if (typeof target[key] === "object") {
+                        return reactive(target[key]);
+                    };
+                    return Reflect.get(target, key, receiver);
+                },
+                set(target, key, value, receiver) {
+                    console.log("这里是set");
+                    return Reflect.set(target, key, value, receiver);
+                }
+            });
+        };
+        const proxy = reactive(obj);
+```
+
+现在列举一下我知道的响应式失去的几个情况：
+
+1、解构 props 对象，因为它会失去响应式
+2、 直接赋值reactive响应式对象
+3、 vuex中组合API赋值
+
+1 解构props对象
+```
+       const obj = {
+            a: {
+                count: 1
+            },
+            b: 1
+        };
+            
+            //reactive 是上文中的reactive
+           const proxy = reactive(obj);
+        const {
+            a,
+            b
+        } = proxy;
+        console.log(a)
+        console.log(b)
+        console.log(a.count)
+```
+上述代码中，我们发现， 解构赋值，b 不会触发响应式，a如果你访问的时候，会触发响应式,这是为什么呢？
