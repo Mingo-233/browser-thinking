@@ -221,6 +221,84 @@ defineExpose({
 </script>
 ```
 
+## props写法
+### 方法1
+```
+const props = defineProps({
+  exampleInfo: {
+    type: Object,
+    default: () => {},
+  },
+});
+```
+### 方法2
+```
+interface IProps {
+  orderInfo: Record<string, any>;
+  orderStatus: orderStatusT;
+  orderType: orderTypeT;
+}
+type priceTxtStatusT = "waiting" | "waiting_design" | "waiting_final";
+const props = withDefaults(defineProps<IProps>(), {
+  orderStatus: "waiting",
+});
+```
+### 方法3
+```
+type ISize = "small" | "medium" | "large";
+import { defineComponent, PropType } from "vue";
+const props = {
+  // 新增
+  size: {
+    type: String as PropType<ISize>,
+    default: "medium",
+  },
+}
+```
+
+
+## emit
+```
+const Emits = defineEmits(["update:selectedTag", "on-click"]);
+const selectTagHandler = (tag: tagT) => {
+  Emits("update:selectedTag", tag);
+  Emits("on-click", tag);
+};
+```
+
+## 插槽写法
+```
+<!-- 父组件 -->
+<script setup>
+import ChildView from './ChildView.vue'
+</script>
+
+<template>
+  <div>parent</div>
+  <ChildView>
+    <template v-slot:content="{ msg }">
+      <div>{{ msg }}</div>
+    </template>
+  </ChildView>
+</template>
+
+<!-- ChildView 也可以简写为： -->
+<ChildView>
+  <template #content="{ msg }">
+    <div>{{ msg }}</div>
+  </template>
+</ChildView>
+```
+
+```
+<!-- 子组件 -->
+<template>
+  <div>child</div>
+  <slot name="content" msg="hello vue3!"></slot>
+</template>
+```
+
+
 # 进阶问题
 
 ## vue3响应式失效问题
