@@ -295,3 +295,38 @@ git push -u origin master
 
  
 2、git rm -r --cached 文件，取消缓存不想要跟踪的文件
+
+
+### 7git rebase合并多次commit：
+
+1、 git rebase -i  [startpoint]  [endpoint]
+其中-i的意思是--interactive，即弹出交互式的界面让用户编辑完成合并操作，[startpoint] [endpoint]则指定了一个编辑区间，如果不指定[endpoint]，则该区间的终点默认是当前分支HEAD所指向的commit(注：该区间指定的是一个前开后闭的区间)。
+
+git rebase -i HEAD~3  或 git rebase -i 36224db （指定特定一次提交合并）
+
+2、对所有需要合并的提交进行处理操作
+
+
+下面注释部分是git为我们提供的命令说明。每一个commit id 前面的pick表示指令类型，git 为我们提供了以下几个命令:
+
+> pick：保留该commit（缩写:p）
+            reword：保留该commit，但我需要修改该commit的注释（缩写:r）
+            edit：保留该commit, 但我要停下来修改该提交(不仅仅修改注释)（缩写:e）
+            squash：将该commit和前一个commit合并（缩写:s）
+            fixup：将该commit和前一个commit合并，但我不要保留该提交的注释信息（缩写:f）
+            exec：执行shell命令（缩写:x）
+            drop：我要丢弃该commit（缩写:d）
+
+然后wq保存退出后是注释修改界面
+
+
+例如 ： 保留第一次提交 合并第二第三次
+pick d2cf1f9 fix: 第一次提交
+s 47971f6 fix: 第二次提交
+s fb28c8d fix: 第三次提交
+
+3、删除被合并的提交 提交注释
+
+> 可以再浏览态 按下两个dd可以删除一行
+
+全部操作完 :wq 保存退出
