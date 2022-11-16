@@ -221,6 +221,55 @@ defineExpose({
 </script>
 ```
 
+## 为 ref() 标注类型
+通过接口指定类型。有时我们可能想为 ref 内的值指定一个更复杂的类型，可以使用 Ref 这个接口：
+
+```
+import { ref } from 'vue'
+import type { Ref } from 'vue'
+
+const year: Ref<string | number> = ref('2022')
+year.value = 2022 // 成功！
+```
+
+通过泛型指定类型。我们也可以在调用 ref() 时传入一个泛型参数，来覆盖默认的推导行为：
+```
+const year = ref<string | number>('2022')
+year.value = 2022 // 成功！
+
+```
+
+
+## 为 reactive() 标注类型
+通过接口指定类型。要显式地指定一个 reactive 变量的类型，我们可以使用接口：
+import { reactive } from 'vue'
+
+interface Book {
+  title: string
+  year?: number
+}
+
+const book: Book = reactive({ title: 'Vue 3 指引' })
+book.year = 2022 // 成功！
+
+
+## 缓存路由组件写法
+```
+// Vue2 中缓存路由组件
+<KeepAlive>
+  <RouterView />
+</KeepAlive>
+```
+
+```
+// Vue3 中缓存路由组件
+<RouterView v-slot="{ Component }">
+  <KeepAlive>
+    <Component :is="Component"></Component>
+  </KeepAlive>
+</RouterView>
+```
+
 ## props写法
 ### 方法1
 ```
