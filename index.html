@@ -1,60 +1,54 @@
 <!DOCTYPE html>
 <html>
   <style>
-    .parent div,
-    .parent .title,
-    .parent #article {
-      color: red;
-    }
-
-    .parent :where(div, .title, #article) {
-      color: red;
+    #box {
+      height: 5000px;
+      background-color: beige;
     }
   </style>
 
   <body>
-    <button onclick="handle()">bbb</button>
-    <p>aa</p>
+    <div id="box">aa</div>
   </body>
   <script>
-    const obj = {
-      count: 1,
-      b: {
-        c: 2,
-      },
-    };
-    const proxy = new Proxy(obj, {
-      get(target, key, receiver) {
-        console.log("这里是get");
-        return Reflect.get(target, key, receiver);
-      },
-      set(target, key, value, receiver) {
-        console.log("这里是set");
-        return Reflect.set(target, key, value, receiver);
-      },
-    });
+    function concurrentRequest(requestFns, limit) {
+      // 递归函数
+      function recursion(requestFn) {
+        // 前面的请求状态返回后下一个请求才会开始
+        requestFn().finally(() => {
+          if (_requestFns.length > 0) {
+            recursion(_requestFns.shift());
+          }
+        });
+      }
+      const _requestFns = [...requestFns];
+      // 限制最大并发量
+      for (let i = 0; i < limit && _requestFns.length > 0; i++) {
+        recursion(_requestFns.shift());
+        console.log(_requestFns);
+      }
+    }
+    // ----------下面是测试用例------------
+    // 模拟一个异步请求函数
+    function createRequest(delay, i) {
+      return () =>
+        new Promise((resolve) => {
+          setTimeout(() => {
+            resolve("done:" + i);
+          }, delay);
+        }).then((r) => {
+          console.log(r);
+        });
+    }
+    const requestFns = [];
+    for (let i = 0; i < 10; i++) {
+      // 这里面的参数i是为了打印查看区分具体请求的
+      requestFns.push(createRequest(1000, i));
+    }
 
-    // console.log(proxy);
-    console.log(proxy.b);
-    console.log(proxy.b.c);
-
-    let ab = {
-      name: "xiaoming",
-      age: 12,
-      info: {
-        no: 2,
-      },
-    };
-    let { name, info } = ab;
-    name = "xiaohong";
-    // info.no = 3;
-    info = {
-      ph: 100,
-    };
-
-    let name2 = ab.name;
-    name2 = "xiaogang";
-    console.log(name);
-    console.log(ab);
+    concurrentRequest(requestFns, 3);
+    setTimeout(() => {
+      console.log(requestFns);
+    }, 3000);
   </script>
 </html>
