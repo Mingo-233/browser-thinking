@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+
+  <body>
+    <!-- <div id="app"></div> -->
+    <div id="container">
+      <div id="app1"></div>
+      <div id="app2"></div>
+    </div>
+    <script>
+      //   const $app = document.querySelector("#app");
+      const $app1 = document.querySelector("#app1");
+      const $app2 = document.querySelector("#app2");
+
+      //   const bucket = new Set();
+      const bucket = new WeakMap();
+
+      let obj1 = {
+        text: "hello fatfish",
+        text2: "hello fatfish2",
+      };
+      let activeEffect;
+      function effect(fn) {
+        activeEffect = fn;
+        // $app.innerText = state.text;
+        fn();
+      }
+      let state = new Proxy(obj1, {
+        get: function (target, prop, receiver) {
+          let value = target[prop];
+          if (!activeEffect) return;
+          let depMap = bucket.get(target);
+          if (!depMap) {
+            bucket.set(target, (depMap = new Map()));
+          }
+          // 根据当前读取的key，尝试读取key的effects函数
+          let dep = depMap.get(prop);
+          if (!dep) {
+            depMap.set(prop, (dep = new Set()));
+          }
+          dep.add(activeEffect);
+          return value;
+        },
+        set: function (target, prop, newValue) {
+          target[prop] = newValue;
+          // 读取depsMap 其结构是 key => effects
+          const depsMap = bucket.get(target);
+
+          if (!depsMap) {
+            return;
+          }
+          const effects = depsMap.get(prop);
+          effects &&
+            effects.forEach((fn) => {
+              fn();
+            });
+        },
+      });
+
+      // 改变app1的值
+      function effect1() {
+        console.log("执行了effect");
+        $app1.innerText = state.text;
+      }
+      // 改变app2的值
+      function effect2() {
+        console.log("执行了effect2");
+        $app2.innerText = state.text2;
+      }
+      effect(effect1);
+      effect(effect2);
+      setTimeout(() => {
+        // 1秒后希望app的内容变成hello Vue3
+        // state.text = "hello Vue3";
+        state.text2 = "hello Vue3-2";
+        state.text3 = " 333";
+      }, 1000);
+    </script>
+  </body>
+</html>

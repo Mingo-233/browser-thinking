@@ -350,7 +350,7 @@ import ChildView from './ChildView.vue'
 
 # 进阶问题
 
-## vue3响应式失效问题
+## vue3响应式失效问题 (1)
 
 
 vue3 响应式在使用过程中有以下2个弊端： 
@@ -451,6 +451,28 @@ vue3 响应式在使用过程中有以下2个弊端：
 
 > 问题来了，那么vue2中呢？ 为什么解构赋值不会影响响应式问题？
 
+答：记得vue2中data函数返回的一个大对象么?
+vue2响应式过程关键函数
+`defineReactive(vm, key, obj[key]);`
+```    function defineReactive (obj, key, val) {
+      var dep = new Dep();
+      Object.defineProperty(obj, key, {
+        get: function () {
+          // 添加订阅者 watcher 到 Dep
+          if (Dep.target) dep.addSub(Dep.target);
+          return val
+        },
+        set: function (newVal) {
+          if (newVal === val) return
+          val = newVal;
+          // 作为发布者发出通知
+          dep.notify();
+        }
+      });
+    }
+```
+所以在vue2中是对vue当前实例的整个大data对象做了劫持，上面所说的解构是针对data中的某一项数据，因此对他的操作仍包含在大data对象中，因此也是被监听到的，所以响应式没有丢
+
 2 直接赋值导致响应式失效问题
 
 ```
@@ -484,6 +506,62 @@ export default {
 }
 这种情况需要用 计算属性包一层，否值直接用 . 拿到子属性和上面所说的变量赋值问题一样，会导致响应式的实效
  ```
+## vue3响应式失效问题 (2) ref不丢失 reactive丢失
+问题描述：使用 reactive 定义的对象，重新赋值后失去了响应式，改变值视图不会发生变化。而用ref却不会，为什么？
 
+
+ref 定义数据（包括对象）时，都会变成 RefImpl(Ref 引用对象) 类的实例，无论是修改还是重新赋值都会调用 setter，**都会经过 reactive 方法处理为响应式对象**。
+```
+class RefImpl {
+    constructor(value, __v_isShallow) {
+        this.__v_isShallow = __v_isShallow;
+        this.dep = undefined;
+        this.__v_isRef = true;
+        this._rawValue = __v_isShallow ? value : toRaw(value);
+        this._value = __v_isShallow ? value : toReactive(value);
+    }
+    get value() {
+        trackRefValue(this);
+        return this._value; // get方法返回的是_value的值
+    }
+    set value(newVal) {
+        newVal = this.__v_isShallow ? newVal : toRaw(newVal);
+        if (hasChanged(newVal, this._rawValue)) {
+            this._rawValue = newVal;
+            this._value = this.__v_isShallow ? newVal : toReactive(newVal); // set方法调用 toReactive 方法 (关键地方)
+            triggerRefValue(this, newVal);
+        }
+    }
+}
+```
+
+但是 reactive 定义数据（必须是对象），是直接调用 reactive 方法处理成响应式对象。如果重新赋值，就会丢失原来响应式对象的引用地址，变成一个新的引用地址，这个新的引用地址指向的对象是没有经过 reactive 方法处理的，所以是一个普通对象，而不是响应式对象。
+
+
+## vue3响应式失效问题 (3) 解构赋值额外问题
+
+问题描述： 现在我们知道，对reactive对象中的常量结构时，拿到的是值而不是地址，所以此时改变这个常量是没有办法触发响应式的。例如
+```
+const state = reactive({
+  name: "aa",
+  email: "bb",
+  info: {
+    age: 19,
+  },
+});
+let { name, info } = state;
+const handle = () => {
+  console.log("handle");
+  name = "changenae";  //此时更改的这个值 name是无法触发响应式的 在dom上显示的话仍然为aa
+};
+```
+
+有趣的问题来了，但是如果同时进行对响应式对象其他的引用值变化，触发了劫持，更新值的时候，原先的常量值也发生了变化
+let { name, info } = state;
+const handle = () => {
+  console.log("handle");
+  name = "changenae";
+  info.age = 9999; //这一步执行后 name的值在视图上也更新了！！！ 但是state.name还是aa这可以理解。 但是name变化不理解，暂时只能理解为 当有另外响应式变化的时候，触发了视图更新，此时手动拿到了name到最新值，顺带帮它也更新了
+};
  # vue3 源码解析分析
  https://github.com/yixinagqingyuan/vue-next-analysis
