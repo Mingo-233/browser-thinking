@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      function handle1() {
+        // 创建parent对象 拥有get/set以及_name
+        const parent = {
+          _name: null,
+          get name() {
+            return this._name;
+          },
+          set name(value) {
+            this._name = value;
+          },
+        };
+        // 上面这种写法和下面等效
+        // Object.defineProperty(obj, "name", {
+        //   get() {
+        //     return this._name;
+        //   },
+        //   set(value) {
+        //     this._name = value;
+        //   },
+        // });
+        // 创建一个空对象child 相当于 child.__proto__ = parent 实现原型继承
+        const child = Object.create(parent);
+
+        // 为child实例赋值name属性
+        child.name = "19Qingfeng";
+
+        console.log(child, "child");
+      }
+      handle1();
+      //   属性访问期器的屏蔽效果
+      //首先第一情况下，如果 child 的原型链 prototype 上存在名为 name 的普通数据访问属性，
+      //   并且此时该属性没有被标记为只读（writable:false）,那么此时会在 child 实例上添加一个 name 属性，它会屏蔽原型上的属性。
+
+      // 其次第二种情况下，如果 child 的原型链 prototype 上存在名为 name 的普通数据访问属性，并且该属性被标记为只读(writable:true)，
+      //   那么此时对于 child.name = '19Qingfeng' 是不会产生任何效果的，换句话说它并不会为自身实例添加属性同时也无法修改原型上的同名属性，在严格模式下甚至这一行为会提示错误。
+
+      // 最后第三种情况下，它可以解释我们刚刚的行为。如果 child 的原型链上存在一个 name 并且此时他是一个 setter 时，
+      //   那么此时我们在实例上进行赋值操作时，原型上的同名 setter 会被调用，并且 name 属性并不会被添加到实例中，同时也不会对原型上的 setter 造成任何影响。
+    </script>
+  </body>
+</html>

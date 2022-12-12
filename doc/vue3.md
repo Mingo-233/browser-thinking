@@ -563,5 +563,16 @@ const handle = () => {
   name = "changenae";
   info.age = 9999; //这一步执行后 name的值在视图上也更新了！！！ 但是state.name还是aa这可以理解。 但是name变化不理解，暂时只能理解为 当有另外响应式变化的时候，触发了视图更新，此时手动拿到了name到最新值，顺带帮它也更新了
 };
+
+## 为什么 Proxy 一定要配合 Reflect 使用？
+
+[详情 见案例](../case//vue3/vue3-reflect.html)
+
+触发代理对象的劫持时保证正确的 this 上下文指向。
+
+针对于 get 陷阱（当然 set 其他之类涉及到 receiver 的陷阱同理）：
+
+- Proxy 中接受的 Receiver 形参表示代理对象本身或者继承与代理对象的对象。
+- Reflect 中传递的 Receiver 实参表示修改执行原始操作时的 this 指向。
  # vue3 源码解析分析
  https://github.com/yixinagqingyuan/vue-next-analysis

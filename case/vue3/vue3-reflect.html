@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      // 基础版本
+      function handle1() {
+        const obj = {
+          name: "wang.haoyu",
+        };
+
+        const proxy = new Proxy(obj, {
+          // get陷阱中target表示原对象 key表示访问的属性名
+          get(target, key, receiver) {
+            // 所以 receiver 的确是可以表示代理对象，但是这仅仅是 receiver 代表的一种情况而已。
+            console.log(receiver === proxy);
+            return target[key];
+          },
+        });
+        // log: true
+        proxy.name;
+      }
+
+      // ----------------------------------------------------------------
+
+      function handle2() {
+        const parent = {
+          get value() {
+            return "19Qingfeng";
+          },
+        };
+        const proxy = new Proxy(parent, {
+          // get陷阱中target表示原对象 key表示访问的属性名
+          get(target, key, receiver) {
+            console.log(receiver === proxy); // log:false
+            console.log(receiver === obj); // log:true
+            return target[key];
+          },
+        });
+        const obj = {
+          name: "wang.haoyu",
+        };
+        // 设置obj继承与parent的代理对象proxy
+        Object.setPrototypeOf(obj, proxy);
+        // console.log(obj);
+
+        // log: false
+        // console.log(obj.value);
+      }
+      //  ----------------------------------------------------------------
+      function handle3() {
+        const parent = {
+          name: "19Qingfeng",
+          get value() {
+            return this.name;
+          },
+        };
+
+        const handler = {
+          get(target, key, receiver) {
+            return Reflect.get(target, key);
+            // 这里相当于 return target[key]
+          },
+        };
+
+        const proxy = new Proxy(parent, handler);
+
+        const obj = {
+          name: "wang.haoyu",
+        };
+
+        // 设置obj继承与parent的代理对象proxy
+        Object.setPrototypeOf(obj, proxy);
+
+        // log: false
+        console.log(obj.value);
+
+        //   当我们调用 obj.value 时，由于 obj 本身不存在 value 属性。
+        //   它继承的 proxy 对象中存在 value 的属性访问操作符，所以会发生屏蔽效果。
+        //   此时会触发 proxy 上的 get value() 属性访问操作。
+        //   同时由于访问了 proxy 上的 value 属性访问器，所以此时会触发 get 陷阱。
+        //   进入陷阱时，target 为源对象也就是 parent ，key 为 value 。
+        //   陷阱中返回 Reflect.get(target,key) 相当于 target[key]。
+        //   此时，不知不觉中 this 指向在 get 陷阱中被偷偷修改掉了！！
+        //   原本调用方的 obj 在陷阱中被修改成为了对应的 target 也就是 parent 。
+        //   自然而然打印出了对应的 parent[value] 也就是 19Qingfeng 。
+        //   这显然不是我们期望的结果，当我访问 obj.value 时，我希望应该正确输出对应的自身上的 name 属性也就是所谓的 obj.value => wang.haoyu 。
+
+        //   那么，Relfect 中 get 陷阱的 receiver 就大显神通了。
+      }
+
+      function handle4() {
+        const parent = {
+          name: "19Qingfeng",
+          get value() {
+            return this.name;
+          },
+        };
+
+        const handler = {
+          get(target, key, receiver) {
+            // 此时我们把上下文对象指向了正确的 继承 Proxy 的对象 parent，而非proxy对象
+            return Reflect.get(target, key, receiver);
+          },
+        };
+
+        const proxy = new Proxy(parent, handler);
+
+        const obj = {
+          name: "wang.haoyu",
+        };
+
+        // 设置obj继承与parent的代理对象proxy
+        Object.setPrototypeOf(obj, proxy);
+
+        // log: wang.haoyu
+        console.log(obj.value);
+      }
+      //   handle1();
+      //   handle2();
+      //   handle3();
+      handle4();
+
+      //   你可以简单的将 Reflect.get(target, key, receiver) 理解成为 target[key].call(receiver)，不过这是一段伪代码，但是这样你可能更好理解。
+    </script>
+  </body>
+</html>
