@@ -13,9 +13,12 @@
         const parent = {
           _name: null,
           get name() {
+            console.log("触发get");
             return this._name;
           },
           set name(value) {
+            console.log("触发set");
+            console.log(this);
             this._name = value;
           },
         };
@@ -45,7 +48,7 @@
       //   那么此时对于 child.name = '19Qingfeng' 是不会产生任何效果的，换句话说它并不会为自身实例添加属性同时也无法修改原型上的同名属性，在严格模式下甚至这一行为会提示错误。
 
       // 最后第三种情况下，它可以解释我们刚刚的行为。如果 child 的原型链上存在一个 name 并且此时他是一个 setter 时，
-      //   那么此时我们在实例上进行赋值操作时，原型上的同名 setter 会被调用，并且 name 属性并不会被添加到实例中，同时也不会对原型上的 setter 造成任何影响。
+      //   那么此时我们在实例上进行赋值操作时，原型上的同名 setter 会被调用，并且 name 属性并不会被添加到实例中(经实验在chrome中会被添加，但是在firefox中不会)，同时也不会对原型上的 setter 造成任何影响。
     </script>
   </body>
 </html>

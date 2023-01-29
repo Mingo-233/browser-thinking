@@ -286,6 +286,23 @@ interface User {
 type EditUser = Omit<User, "id">; // 就是在 User 的基础上，去掉 id 属性
 ```
 
+### Exclude
+从T中排除U
+
+type Exclude<T, U> = T extends U ? never : T;
+
+```
+type T = Exclude<1 | 2, 1 | 3> 
+// T = 2
+```
+
+### Extract
+从 T 中提取出 U
+type Extract<T, U> = T extends U ? T : never;
+
+```
+type T0 = Extract<"a" | "b" | "c", "a" | "f">;  //'a'
+```
 
 ### 属性修饰工具类型
 
