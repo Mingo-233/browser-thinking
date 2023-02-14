@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      // 区别就是垃圾回收器是否回收的问题，WeakMap对象对key是弱引用，如果target对象没有任何引用，可以被垃圾回收器回收，这就需要它了。相对于WeakMap，不管target是否引用，Map都不会被垃圾回收，容易造成内存泄露
+      const map = new Map();
+      const weakMap = new WeakMap();
+      //   const foo = { foo: 1 };
+      //   const bar = { bar: 2 };
+      const cash = [];
+      (function () {
+        const foo = { foo: 1 };
+        const bar = { bar: 2 };
+        map.set(foo, 1);
+        weakMap.set(bar, 2);
+      })(); // 函数执行完，weakMap内的所有属性都被垃圾回收器回收了
+      setTimeout(() => {
+        console.log(weakMap); // 刷新页面发现weakMap里面没有属性了 ;但是吧上面的注释去掉，target对象存在引用，就会发现weakMap里面有属性了
+        console.log(map);
+      }, 2000);
+    </script>
+  </body>
+</html>

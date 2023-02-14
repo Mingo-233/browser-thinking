@@ -75,3 +75,140 @@ oldEnd 与 newStart比较；
 此外当循环结束之后，立即判断 oldEndIdx 的值是否小于 oldStartIdx 的值， 如果条件成立，则需要使用 for 循环把所有位于 newStartIdx 到 newEndIdx 之间的元素都当做全新的节点添加到容器元素中，这样我们就完整的实现了完整的添加新节点的功能。
 四、删除节点
 此外当循环结束之后，newStartId >newEndIdx 时，说明旧的节点仍多，需要删除多余的节点。
+
+
+## Q vue3 响应式
+
+
+### 副作用函数
+Vue3通过创建Proxy的实例对象而实现的，它们都是收集依赖、通知依赖更新。而Vue3中把依赖 命名为副作用函数effect，也就是数据改变发生的副作用。
+所以说 effect副作用函数的作用就是 1收集依赖 2通知更新 触发视图等更新
+
+### 全局变量activeEffect
+
+ 因为每个数据对应等副作用函数都是不同的，且会被收集到set中，假如这个副作用函数是一个匿名函数，就不能靠名字区分，这时候需要怎么处理？ 
+ ```
+ effect (()=>console.log('房子状态：'+obj.status)) /
+ ```
+添加一个全局变量activeEffect存储依赖函数，这样effect就不会依赖函数的名字了
+
+### Weak、Map、Set三个集合方法
+
+前提问题：
+
+假如读取不存在的属性的时候，副作用函数发生什么？ 副作用函数会被重新执行，由于目标字段与副作用函数没有建立明确的函数联系。所以这就需要引入唯一key辨识每一个数据的副作用函数，以target（目标数据）、key（字段名）、effectFn（依赖）
+分三种情况分析副作用函数存储数据唯一标识：
+1. 两个副作用函数同时读取同一个对象的属性值：
+2. 一个副作用函数中读取了同一个对象不同属性：
+3. 不同副作用函数中读取两个不同对象的相同属性：
+
+所以为了解决这些不同情况的副作用保存问题，所以Vue3引入了Weak、Map、Set三个集合方法来保存对象属性的相关副作用函数：
+
+![](https://mmbiz.qpic.cn/mmbiz/pfCCZhlbMQToQ8GUib0uia7klolUfLrBntYYIyHgEBKutj5YNh7S66jRbtSKYPAPk7k9hZOIfIicyYKrV6poMNPxw/640?wx_fmt=jpeg&wxfrom=5&wx_lazy=1&wx_co=1)
+
+
+### 依赖清理
+
+前提问题：在一个副作用函数中调用了对象的两个属性
+```
+const effectFn = (() => {
+  const str = obj.status ? '' : obj.type;
+})
+const obj = new Proxy(house, {
+  get(target, key) {
+    console.log('get run!');// 打印了两次
+    ...
+  },
+  set(target, key, newVal) {
+   ...
+  }
+})
+```
+
+解决思路就是当每次副作用函数执行时，我们可以先把它从所有与之关联的依赖集合中删除。
+源码例子：
+```
+// 清空副作用函数依赖的集合
+function cleanupEffect(effect: ReactiveEffect) {
+  const { deps } = effect
+  if (deps.length) {
+    for (let i = 0; i < deps.length; i++) {
+      deps[i].delete(effect)
+    }
+    deps.length = 0
+  }
+}
+```
+
+**嵌套副作用函数处理**：由于副作用函数可能是嵌套，比如副作用函数中effectFn1中有还有一个副作用函数effectFn2，以上面的方法对于嵌套函数的处理用全局变量 activeEffect 来存储通过 effect 函数注册的副作用函数，这意味着同一时刻 activeEffect 所存储的副作用函数只能有一个。当副作用函数发生嵌套时，内层副作用函数的执行会覆盖 activeEffect 的值，并且永远不会恢复到原来的值。看了很多资料举例用effect栈存储，是的没错，当执行副作用函数的时候把它入栈，执行完毕后把它出栈。现在我们一起看一下源码怎么处理的：
+
+按位跟踪标记递归深度方式（优化方案）：通过用二进制位标记当前嵌套深度的副作用函数是否记录过，如果记录过就，如果已经超过最大深度，因为采用降级方案，是全部删除然后重新收集副作用函数的。
+```
+let effectTrackDepth = 0 // 当前副作用函数递归深度
+export let trackOpBit = 1 // 在track函数中执行当前的嵌套副作用函数的标志位
+const maxMarkerBits = 30 // 最大递归深度支持30位， 为什么需要设置30位，因为31位会溢出。
+```
+
+```
+// 每次执行 effect 副作用函数前，全局变量嵌套深度会自增1
+trackOpBit = 1 << ++effectTrackDepth
+
+// 执行完副作用函数后会自减
+trackOpBit = 1 << --effectTrackDepth;
+```
+
+当超过递归深度，就会采用全量清理的方案
+```
+  if (effectTrackDepth <= maxMarkerBits) {
+    // 执行副作用函数之前，使用 `deps[i].w |= trackOpBit`对依赖dep[i]进行标记，追踪依赖
+    initDepMarkers(this)
+  } else {
+    // 降级方案：完全清理
+    cleanupEffect(this)
+  }
+  ```
+清理依赖
+```
+export const finalizeDepMarkers = (effect: ReactiveEffect) => {
+  const { deps } = effect
+  if (deps.length) {
+    let ptr = 0
+    for (let i = 0; i < deps.length; i++) {
+      const dep = deps[i]
+      // 有 was 标记但是没有 new 标记，应当删除
+      if (wasTracked(dep) && !newTracked(dep)) {
+        dep.delete(effect)
+      } else {
+        // 需要保留的依赖
+        deps[ptr++] = dep
+      }
+      // 清空，把当前位值0，先按位非，再按位与
+      dep.w &= ~trackOpBit
+      dep.n &= ~trackOpBit
+    }
+    // 保留依赖的长度
+    deps.length = ptr
+  }
+}
+```
+
+
+  如何判断当前依赖是否已记录过，通过按位与判断是否有位已经标识，有就大于0：
+
+```
+//代表副作用函数执行前被 track 过
+export const wasTracked = (dep: Dep): boolean => (dep.w & trackOpBit) > 0
+//代表副作用函数执行后被 track 过
+export const newTracked = (dep: Dep): boolean => (dep.n & trackOpBit) > 0
+```
+
+
+### Vue3响应式原理小结:
+
+* activeEffect解决匿名函数问题。
+* WeakMap、Map、Set存储对象属性的相关副作用函数。
+* 处理副作用函数时，假如有多个响应式属性，控制只触发生效的属性或用到的属性。
+* 嵌套副作用函数，使用二进制位记录嵌套副作用，通过控制二进制位是否清理嵌套副作用实现层级追踪。
+* track()实现依赖收集、层级依赖追踪、依赖清理（解决嵌套副作用）。
+* trigger()当某个依赖值发生变化时触发的, 根据依赖值的变化类型, 会收集与依赖相关的不同副作用处理对象, 然后逐个触发他们的 run 函数, 通过执行副作用函数获得与依赖变化后对应的最新值
+
