@@ -151,3 +151,30 @@ const methodObj2: methods = {
 const ddd = methodObj2.handle<string>("44");
 
 ```
+
+## 函数定义,第一位参数约束后续后续参数
+
+```
+interface ev1 {
+  name: string;
+}
+interface ev2 {
+  age: number;
+}
+interface Imap {
+  get: ev1;
+  post: ev2;
+}
+type IpostTask = <T extends keyof Imap>(type: T, fnc: (event: Imap[T]) => void) => void;
+let postTask: IpostTask = (type, fnc) => {
+  console.log('ty ', type);
+};
+
+postTask('get', (event) => {
+  console.log(event.name);
+});
+postTask('post', (event) => {
+  console.log(event.age);
+});
+
+```
