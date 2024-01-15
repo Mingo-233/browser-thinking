@@ -217,7 +217,19 @@ function fn<T extends number | string>(x:T):void{
 }
 fn(12)
 ```
+### 2.2 范型使用联合类型
 
+联合类型在泛型中的表现是分配之后再传入，如下例子：当我们用泛型传递时候，跟预想中的不太一样，这里会把泛型传入的 number 和 string 拆分之后在去运行 extends 判断。因此最后的结果是 string | number
+```
+type P<T> = T extends string ? string : number
+type A = P<number | string> // string | number
+```
+
+hack
+```
+type P<T> = [T] extends [string] ? string : number
+type A = P<number | string> // number
+```
 
 ## 3工具类型
 
