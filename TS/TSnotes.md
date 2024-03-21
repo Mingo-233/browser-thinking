@@ -217,6 +217,30 @@ function fn<T extends number | string>(x:T):void{
 }
 fn(12)
 ```
+
+案例
+```
+// 定义一个接口，表示包含指定属性的对象
+interface WithName {
+  name: string;
+}
+
+// 使用类型约束 <T extends WithName>，表示泛型参数 T 必须符合 WithName 接口的要求
+function getNames<T extends WithName>(arr: T[], propName: keyof WithName): string[] {
+  return arr.map((item) => item[propName]);
+}
+
+// 定义一个包含 name 属性的对象数组
+const objects: WithName[] = [{ name: 'Alice' }, { name: 'Bob' }, { name: 'Charlie' }];
+
+// 使用 getNames 函数获取对象数组中所有对象的 name 属性值组成的数组
+const names: string[] = getNames(objects, 'name');
+console.log(names); // 输出 ["Alice", "Bob", "Charlie"]
+
+// 下面这行代码会在编译阶段报错，因为 'age' 不是有效的属性名
+// const ages: string[] = getNames(objects, 'age');
+
+```
 ### 2.2 范型使用联合类型
 
 联合类型在泛型中的表现是分配之后再传入，如下例子：当我们用泛型传递时候，跟预想中的不太一样，这里会把泛型传入的 number 和 string 拆分之后在去运行 extends 判断。因此最后的结果是 string | number
